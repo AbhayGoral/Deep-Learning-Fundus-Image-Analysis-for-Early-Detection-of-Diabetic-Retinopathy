@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <title>DR Prediction | Diabetic Retinopathy Detection</title>
+
+    <style>
+        .upload-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            min-height: 100vh;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .upload-header i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #0066cc, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .upload-header h2 {
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 40px;
+            border: 3px dashed #0066cc;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+
+        .file-input-label:hover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 102, 204, 0.2);
+        }
+
+        .file-input-label i {
+            font-size: 2.5rem;
+            color: #0066cc;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .file-input-label .main-text {
+            font-weight: 600;
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .file-input-label .sub-text {
+            color: #666;
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #0066cc;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        .file-name.active {
+            display: block;
+        }
+
+        .predict-button {
+            background: linear-gradient(135deg, #0066cc, #0080ff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 5px 20px rgba(0, 102, 204, 0.4);
+        }
+
+        .predict-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 102, 204, 0.6);
+            color: white;
+        }
+
+        .predict-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #06cd1d 0%, #118a0d 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(6, 205, 29, 0.3);
+            animation: slideIn 0.5s ease;
+        }
+
+        .result-card h4 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .result-text {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .result-card.warning {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff0051 100%);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .info-image {
+            max-width: 100%;
+            width: 100%;
+            border-radius: 20px;
+            margin-top: 60px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dr-info-section {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dr-info-section h4 {
+            color: #1a1a2e;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+            <i class="fas fa-eye"></i> DR Detection
+        </a>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">
+                        <i class="fas fa-home me-2"></i>Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('predict') }}">
+                        <i class="fas fa-upload me-2"></i>Prediction
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ================= PREDICTION SECTION ================= -->
+
+<section class="upload-section">
+    <div class="container px-4">
+
+        <!-- Upload Card -->
+        <div class="upload-card">
+            <div class="upload-header">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h2>Upload Fundus Image</h2>
+                <p>Select a retinal image for AI-powered diagnosis</p>
+            </div>
+
+            <!-- File Input Form -->
+            <form action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data" id="prediction-form">
+                
+                <div class="file-input-wrapper">
+                    <label for="file-input" class="file-input-label">
+                        <i class="fas fa-image"></i>
+                        <span class="main-text">Click to upload or drag & drop</span>
+                        <span class="sub-text">Supported formats: JPG, PNG (Max 10MB)</span>
+                    </label>
+                    <input type="file"
+                           id="file-input"
+                           name="file"
+                           class="form-control d-none"
+                           accept="image/*"
+                           required>
+                    <div class="file-name">
+                        <i class="fas fa-check-circle me-2"></i><span id="file-name-text"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-button" id="predict-btn">
+                    <i class="fas fa-magic me-2"></i>Analyze Image
+                </button>
+
+            </form>
+
+            <!-- Result Display -->
+            {% if prediction %}
+                {% if prediction == "No Diabetic Retinopathy" %}
+                    <div class="result-card">
+                        <i class="fas fa-check-circle mb-3" style="font-size: 2.5rem;"></i>
+                        <h4>Analysis Complete</h4>
+                        <p class="result-text">
+                            <i class="fas fa-thumbs-up me-2"></i>{{ prediction }}
+                        </p>
+                        <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.9;">
+                            No signs of diabetic retinopathy detected
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="result-card warning">
+                        <i class="fas fa-exclamation-triangle mb-3" style="font-size: 2.5rem;"></i>
+                        <h4>Analysis Complete</h4>
+                        <p class="result-text">
+                            {{ prediction }}
+                        </p>
+                        <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.9;">
+                            Please consult an ophthalmologist for professional evaluation
+                        </p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- DR Information Section -->
+        <div class="dr-info-section">
+            <h4><i class="fas fa-info-circle me-2"></i>Diabetic Retinopathy Stages</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 4px solid #06cd1d;">
+                        <strong style="color: #06cd1d;">No DR</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">No signs of diabetic retinopathy</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 10px; border-left: 4px solid #ff9500;">
+                        <strong style="color: #ff9500;">Mild NPDR</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">Earliest signs of the disease</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div style="background: #fce4ec; padding: 15px; border-radius: 10px; border-left: 4px solid #f06292;">
+                        <strong style="color: #f06292;">Moderate NPDR</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">More blood vessel damage</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div style="background: #ffebee; padding: 15px; border-radius: 10px; border-left: 4px solid #ef5350;">
+                        <strong style="color: #ef5350;">Severe NPDR</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">Extensive blood vessel blockage</p>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div style="background: #ff5252; color: white; padding: 15px; border-radius: 10px; border-left: 4px solid #d32f2f; text-align: center;">
+                        <strong>Proliferative DR</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">New abnormal blood vessels forming (Most severe)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DR Image Display -->
+        <div style="text-align: center; margin-top: 40px;">
+            <img src="https://img.icons8.com/color/500/000000/stethoscope.png"
+                 alt="DR Information"
+                 class="info-image"
+                 style="max-width: 400px;">
+        </div>
+
+    </div>
+</section>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- File Input Script -->
+<script>
+    const fileInput = document.getElementById('file-input');
+    const fileInputLabel = document.querySelector('.file-input-label');
+    const fileName = document.querySelector('.file-name');
+    const fileNameText = document.getElementById('file-name-text');
+
+    // Handle file selection
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            fileNameText.textContent = this.files[0].name;
+            fileName.classList.add('active');
+            fileInputLabel.style.borderColor = '#06cd1d';
+            fileInputLabel.style.background = 'linear-gradient(135deg, rgba(6, 205, 29, 0.05) 0%, rgba(17, 138, 13, 0.05) 100%)';
+        }
+    });
+
+    // Handle drag and drop
+    fileInputLabel.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#764ba2';
+        this.style.background = 'linear-gradient(135deg, rgba(118, 75, 162, 0.1) 0%, rgba(0, 102, 204, 0.1) 100%)';
+    });
+
+    fileInputLabel.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#0066cc';
+        this.style.background = 'linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)';
+    });
+
+    fileInputLabel.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            fileInput.files = e.dataTransfer.files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+        this.style.borderColor = '#0066cc';
+    });
+
+    // Show loading state
+    document.getElementById('prediction-form').addEventListener('submit', function() {
+        const btn = document.getElementById('predict-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+    });
+</script>
+
+</body>
+</html>
